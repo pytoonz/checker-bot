@@ -1,7 +1,7 @@
 import os
+import instaloader
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-import instaloader
 
 L = instaloader.Instaloader()
 
@@ -35,6 +35,29 @@ async def get_profile_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"*Posts*: {profile.mediacount}"
         )
         await update.message.reply_text(response, parse_mode='Markdown')
+    except instaloader.exceptions.ProfileNotExistsException:
+        await update.message.reply_text(f"Profile '{username}' does not exist.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {str(e)}")
+
+def main():
+    token = os.getenv("TELEGRAM_TOKEN")
+    if not token:
+        print("Error: TELEGRAM_TOKEN environment variable not set.")
+        return
+
+    application = Application.builder().token(token).build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_profile_info))
+
+    application.run_polling()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:
+        print(f"Error in main: {str(e)}")        await update.message.reply_text(response, parse_mode='Markdown')
     except instaloader.exceptions.ProfileNotExistsException:
         await update.message.reply_text(f"Profile '{username}' does not exist.")
     except Exception as e:
