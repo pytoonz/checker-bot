@@ -47,6 +47,28 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_profile_info))
 
     # Configure webhook
+    webhook_url = os.getenv("WEBHOOK_URL")  # e.g., https://checker-bot-xk2l.onrender.com
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.getenv("PORT", 8443)),  # Use Render’s PORT or default to 8443
+        url_path="/webhook",
+        webhook_url=f"{webhook_url}/webhook"
+    )
+
+if __name__ == "__main__":
+    main()        await update.message.reply_text(response, parse_mode='Markdown')
+    except instaloader.exceptions.ProfileNotExistsException:
+        await update.message.reply_text(f"Profile '{username}' does not exist.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
+def main():
+    application = Application.builder().token(os.getenv("TOKEN")).build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_profile_info))
+
+    # Configure webhook
     webhook_url = os.getenv("WEBHOOK_URL")  # e.g., https://your-app.onrender.com
     application.run_webhook(
         listen="0.0.0.0",
