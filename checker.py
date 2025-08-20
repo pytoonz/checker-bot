@@ -1,6 +1,7 @@
-import instaloader
+import os
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+import instaloader
 
 L = instaloader.Instaloader()
 
@@ -35,6 +36,29 @@ async def get_profile_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         await update.message.reply_text(response, parse_mode='Markdown')
     except instaloader.exceptions.ProfileNotExistsException:
+        await update.message.reply_text(f"Profile '{username}' does not exist.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
+def main():
+    token = os.getenv("TELEGRAM_TOKEN")
+    application = Application.builder().token(token).build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_profile_info))
+
+    # Set webhook
+    port = int(os.getenv("PORT", 8443))  # Use Render's PORT or default to 8443
+    webhook_url = os.getenv("WEBHOOK_URL")  # Set this in Render, e.g., https://your-service.onrender.com/webhook
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=port,
+        url_path="/webhook",
+        webhook_url=f"{webhook_url}/webhook"
+    )
+
+if __name__ == '__main__':
+    main()    except instaloader.exceptions.ProfileNotExistsException:
         await update.message.reply_text(f"Profile '{username}' does not exist.")
     except Exception as e:
         await update.message.reply_text(f"Error: {e}")
