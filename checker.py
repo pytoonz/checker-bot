@@ -5,7 +5,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 
 L = instaloader.Instaloader()
 
-async def start(update: Update, context: AscyncContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🌸 Welcome to Pytoonz Instagram Checker! 🌸\n"
         "Send an Instagram username without @ to get profile info.\n"
@@ -35,6 +35,28 @@ async def get_profile_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💤 *Posts*: {profile.mediacount}\n"
         )
         await update.message.reply_text(response, parse_mode='Markdown')
+    except instaloader.exceptions.ProfileNotExistsException:
+        await update.message.reply_text(f"Profile '{username}' does not exist.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
+def main():
+    application = Application.builder().token(os.getenv("TOKEN")).build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_profile_info))
+
+    # Configure webhook
+    webhook_url = os.getenv("WEBHOOK_URL")  # e.g., https://checker-bot-xk2l.onrender.com
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.getenv("PORT", 8443)),  # Use Render’s PORT or default to 8443
+        url_path="/webhook",
+        webhook_url=f"{webhook_url}/webhook"
+    )
+
+if __name__ == "__main__":
+    main()        await update.message.reply_text(response, parse_mode='Markdown')
     except instaloader.exceptions.ProfileNotExistsException:
         await update.message.reply_text(f"Profile '{username}' does not exist.")
     except Exception as e:
